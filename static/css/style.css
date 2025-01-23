@@ -1,4 +1,5 @@
 /* static/css/style.css */
+
 .container {
     max-width: 900px;
     margin: 0 auto;
@@ -81,6 +82,7 @@
 .template-preview {
     position: relative;
     width: 100%;
+    height: 100%;
 }
 
 .template-preview img {
@@ -91,6 +93,8 @@
 
 .text-preview {
     position: absolute;
+    top: 0;
+    left: 0;
     cursor: move;
     background: rgba(255, 255, 0, 0.4);
     border: 2px dashed #ff0000;

@@ -1,4 +1,3 @@
-// static/js/main.js
 class CertificatePreview {
     constructor() {
         this.dragItem = null;
@@ -12,6 +11,7 @@ class CertificatePreview {
         this.yOffset = 0;
         this.scale = 1;
 
+        // Initialize event listeners
         this.initializeEventListeners();
     }
 
@@ -39,8 +39,9 @@ class CertificatePreview {
             const preview = document.getElementById('templatePreview');
             const previewText = document.getElementById('previewText').value || 'Sample Name';
             
+            // Set the template image and preview text
             preview.innerHTML = `
-                <img src="${event.target.result}" alt="Certificate template">
+                <img src="${event.target.result}" alt="Certificate template" id="templateImage">
                 <div class="text-preview">${previewText}</div>
             `;
 
@@ -62,6 +63,7 @@ class CertificatePreview {
         
         if (!this.dragItem || !this.container) return;
 
+        // Mouse events
         this.dragItem.addEventListener('mousedown', (e) => this.dragStart(e));
         document.addEventListener('mousemove', (e) => this.drag(e));
         document.addEventListener('mouseup', () => this.dragEnd());
@@ -105,6 +107,7 @@ class CertificatePreview {
         const relativeX = Math.round(this.currentX / this.scale);
         const relativeY = Math.round(this.currentY / this.scale);
 
+        // Update position inputs
         document.getElementById('positionX').value = relativeX;
         document.getElementById('positionY').value = relativeY;
 
@@ -156,10 +159,28 @@ class CertificatePreview {
         }
         display.textContent = `X: ${x}, Y: ${y}`;
     }
+
+    // New method to handle certificate download (Download all generated certificates)
+    downloadCertificates(files) {
+        // Create a temporary link to download each file
+        files.forEach(file => {
+            const link = document.createElement('a');
+            link.href = `/static/uploads/${file}`;
+            link.download = file;
+            link.click();
+        });
+    }
 }
 
 // Initialize the preview functionality
 const certificatePreview = new CertificatePreview();
+
+// Add event listener for the download button (now handles downloading all certificates)
+document.getElementById('downloadButton').addEventListener('click', () => {
+    // Assuming the server returns a list of generated certificate files
+    const files = ['certificate1.png', 'certificate2.png', 'certificate3.png']; // Replace this with actual file list from response
+    certificatePreview.downloadCertificates(files);
+});
 
 // Form submission handler
 document.getElementById('certificateForm').addEventListener('submit', async (e) => {
@@ -200,12 +221,13 @@ document.getElementById('certificateForm').addEventListener('submit', async (e) 
             document.getElementById('result').innerHTML = `
                 <h3>Certificates generated successfully!</h3>
                 <p>Generated ${data.files.length} certificates.</p>
-                <ul>
-                    ${data.files.map(file => `
-                        <li><a href="/static/uploads/${file}" target="_blank">${file}</a></li>
-                    `).join('')}
-                </ul>
+                <button id="downloadButton">Download All Certificates</button>
             `;
+
+            // Attach the files array to the download button's click handler
+            document.getElementById('downloadButton').addEventListener('click', () => {
+                certificatePreview.downloadCertificates(data.files);
+            });
         } else {
             throw new Error(data.error || 'Failed to generate certificates');
         }
