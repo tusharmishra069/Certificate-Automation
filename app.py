@@ -3,6 +3,7 @@ import os
 from werkzeug.utils import secure_filename
 from certificate_generator import generate_certificates
 import json
+import shutil
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -16,6 +17,10 @@ def allowed_file(filename):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/generate')
+def generate():
+    return render_template('generate.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_files():

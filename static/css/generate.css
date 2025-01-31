@@ -1,0 +1,149 @@
+/* static/css/style.css */
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.preview-section {
+    margin-bottom: 30px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.preview-controls {
+    margin-bottom: 20px;
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    padding: 15px;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.preview-controls label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.preview-controls input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.position-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.preview-container {
+    position: relative;
+    min-height: 300px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.upload-prompt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.upload-label {
+    display: inline-block;
+    padding: 15px 25px;
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.upload-label:hover {
+    background: #0056b3;
+}
+
+.upload-label input[type="file"] {
+    display: none;
+}
+
+.template-preview {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.template-preview img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.text-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: move;
+    background: rgba(255, 255, 0, 0.4);
+    border: 2px dashed #ff0000;
+    padding: 10px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 
+        -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+        -1px 1px 0 #fff,
+        1px 1px 0 #fff;
+}
+
+.text-preview.dragging {
+    opacity: 0.8;
+    background: rgba(255, 255, 0, 0.6);
+}
+
+.coordinates-display {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    z-index: 1001;
+}
+
+.form-group {
+    margin-bottom: 21px;
+}
+
+button[type="submit"] {
+    background: #28a745;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+button[type="submit"]:hover {
+    background: #218838;
+}
