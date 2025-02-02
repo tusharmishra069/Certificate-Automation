@@ -1,0 +1,6 @@
+Flask==2.2.3
+werkzeug==2.2.3
+Pillow==9.4.0  # For handling images (PIL)
+pandas==1.5.3  # For data manipulation
+Flask==2.2.3
+
