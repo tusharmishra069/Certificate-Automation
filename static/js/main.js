@@ -13,6 +13,8 @@ class CertificatePreview {
 
         // Initialize event listeners
         this.initializeEventListeners();
+        this.generatedFiles = new Map(); 
+        window.addEventListener('beforeunload', () => this.clearTempData());
     }
 
     initializeEventListeners() {
@@ -39,20 +41,37 @@ class CertificatePreview {
             const preview = document.getElementById('templatePreview');
             const previewText = document.getElementById('previewText').value || 'Sample Name';
             
-            // Set the template image and preview text
-            preview.innerHTML = `
-                <img src="${event.target.result}" alt="Certificate template" id="templateImage">
-                <div class="text-preview">${previewText}</div>
-            `;
+            // Create a temporary image to get original dimensions
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                this.originalImageWidth = tempImg.width;
+                this.originalImageHeight = tempImg.height;
+                
+                // Set the template image and preview text
+                preview.innerHTML = `
+                    <div style="position: relative;">
+                        <img src="${event.target.result}" alt="Certificate template" id="templateImage" style="max-width: 100%; display: block;">
+                        <div class="text-preview" style="position: absolute; top: 0; left: 0; color: black; cursor: move; user-select: none; background-color: rgba(255, 255, 255, 0.3); padding: 5px; border: 1px dashed #666;">${previewText}</div>
+                    </div>
+                `;
 
-            const img = preview.querySelector('img');
-            img.onload = () => {
-                this.scale = img.offsetWidth / img.naturalWidth;
-                this.initializeDraggable();
-                this.updatePreviewFontSize();
-                this.updatePosition();
-                document.getElementById('uploadPrompt').style.display = 'none';
+                const img = preview.querySelector('img');
+                img.onload = () => {
+                    // Calculate scale based on original vs displayed dimensions
+                    this.scale = img.offsetWidth / this.originalImageWidth;
+                    
+                    // Set initial font size scaled appropriately
+                    const fontSize = document.getElementById('fontSize').value || '24';
+                    const scaledFontSize = Math.round(parseInt(fontSize) * this.scale);
+                    this.dragItem = preview.querySelector('.text-preview');
+                    this.dragItem.style.fontSize = `${scaledFontSize}px`;
+                    
+                    this.initializeDraggable();
+                    this.updatePosition();
+                    document.getElementById('uploadPrompt').style.display = 'none';
+                };
             };
+            tempImg.src = event.target.result;
         };
         reader.readAsDataURL(file);
     }
@@ -61,7 +80,14 @@ class CertificatePreview {
         this.dragItem = document.querySelector('.text-preview');
         this.container = document.querySelector('.template-preview');
         
-        if (!this.dragItem || !this.container) return;
+        if (!this.dragItem || !this.container) {
+            console.error('Draggable elements not found');
+            return;
+        }
+
+        // Make sure the text is visible
+        this.dragItem.style.display = 'block';
+        this.dragItem.style.zIndex = '1000';
 
         // Mouse events
         this.dragItem.addEventListener('mousedown', (e) => this.dragStart(e));
@@ -104,14 +130,19 @@ class CertificatePreview {
         this.xOffset = this.currentX;
         this.yOffset = this.currentY;
 
-        const relativeX = Math.round(this.currentX / this.scale);
-        const relativeY = Math.round(this.currentY / this.scale);
+        // Convert to actual coordinates (unscaled)
+        const actualX = Math.round(this.currentX / this.scale);
+        const actualY = Math.round(this.currentY / this.scale);
 
-        // Update position inputs
-        document.getElementById('positionX').value = relativeX;
-        document.getElementById('positionY').value = relativeY;
+        // Store actual positions
+        this.dragItem.dataset.actualX = actualX;
+        this.dragItem.dataset.actualY = actualY;
 
-        this.updateCoordinatesDisplay(relativeX, relativeY);
+        // Update position inputs with actual (unscaled) values
+        document.getElementById('positionX').value = actualX;
+        document.getElementById('positionY').value = actualY;
+
+        this.updateCoordinatesDisplay(actualX, actualY);
         this.setTranslate(this.currentX, this.currentY, this.dragItem);
     }
 
@@ -129,7 +160,11 @@ class CertificatePreview {
     updatePreviewFontSize() {
         if (!this.dragItem) return;
         const fontSize = document.getElementById('fontSize').value;
-        this.dragItem.style.fontSize = `${fontSize}px`;
+        // Store the actual font size for form submission
+        this.dragItem.dataset.actualFontSize = fontSize;
+        // Display scaled font size in preview
+        const scaledFontSize = Math.round(parseInt(fontSize) * this.scale);
+        this.dragItem.style.fontSize = `${scaledFontSize}px`;
     }
 
     updatePosition() {
@@ -137,6 +172,11 @@ class CertificatePreview {
         const x = parseInt(document.getElementById('positionX').value) || 0;
         const y = parseInt(document.getElementById('positionY').value) || 0;
         
+        // Store actual positions for form submission
+        this.dragItem.dataset.actualX = x;
+        this.dragItem.dataset.actualY = y;
+        
+        // Display scaled positions in preview
         this.xOffset = x * this.scale;
         this.yOffset = y * this.scale;
         
@@ -159,16 +199,79 @@ class CertificatePreview {
         }
         display.textContent = `X: ${x}, Y: ${y}`;
     }
-
+    async generateCertificates(formData) {
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.files) {
+                // Convert each file to a blob and store in memory
+                await Promise.all(data.files.map(async (file) => {
+                    try {
+                        const fileResponse = await fetch(`/download/${file}`);
+                        const blob = await fileResponse.blob();
+                        const url = URL.createObjectURL(blob);
+                        
+                        this.generatedFiles.set(file, {
+                            url: url,
+                            timestamp: new Date().getTime()
+                        });
+                    } catch (error) {
+                        console.error(`Error processing file ${file}:`, error);
+                    }
+                }));
+    
+                document.getElementById('result').innerHTML = `
+                    <h3>Certificates generated successfully!</h3>
+                    <p>Generated ${data.files.length} certificates.</p>
+                    <button id="download">Download All Certificates</button>
+                `;
+    
+                // Add click handler for the download button
+                const downloadButton = document.getElementById('downloadButton');
+                downloadButton.onclick = () => this.downloadCertificates();
+                
+            } else {
+                throw new Error(data.error || 'Failed to generate certificates');
+            }
+        } catch (error) {
+            document.getElementById('result').innerHTML = `
+                <div class="error">Error: ${error.message}</div>
+            `;
+        }
+    }
     // New method to handle certificate download (Download all generated certificates)
-    downloadCertificates(files) {
-        // Create a temporary link to download each file
-        files.forEach(file => {
+    downloadCertificates() {
+        this.generatedFiles.forEach((fileData, fileName) => {
             const link = document.createElement('a');
-            link.href = `/static/uploads/${file}`;
-            link.download = file;
+            link.href = fileData.url;
+            link.download = fileName;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         });
+    }
+    clearTempData() {
+        // Revoke all object URLs to free up memory
+        this.generatedFiles.forEach(fileData => {
+            URL.revokeObjectURL(fileData.url);
+        });
+        this.generatedFiles.clear();
+    }
+    getActualValues() {
+        if (!this.dragItem) return null;
+        
+        return {
+            fontSize: parseInt(this.dragItem.dataset.actualFontSize) || parseInt(document.getElementById('fontSize').value),
+            position: {
+                x: parseInt(this.dragItem.dataset.actualX) || parseInt(document.getElementById('positionX').value),
+                y: parseInt(this.dragItem.dataset.actualY) || parseInt(document.getElementById('positionY').value)
+            }
+        };
     }
 }
 
@@ -203,34 +306,16 @@ document.getElementById('certificateForm').addEventListener('submit', async (e) 
         formData.append('font', fontFile);
     }
     
-    formData.append('fontSize', document.getElementById('fontSize').value);
-    formData.append('position', JSON.stringify({
-        x: parseInt(document.getElementById('positionX').value),
-        y: parseInt(document.getElementById('positionY').value)
-    }));
+    // Get actual (unscaled) values for submission
+    const actualValues = certificatePreview.getActualValues();
+    if (actualValues) {
+        formData.append('fontSize', actualValues.fontSize);
+        formData.append('position', JSON.stringify(actualValues.position));
+    }
     
     try {
-        const response = await fetch('/upload', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            document.getElementById('result').innerHTML = `
-                <h3>Certificates generated successfully!</h3>
-                <p>Generated ${data.files.length} certificates.</p>
-                <button id="downloadButton">Download All Certificates</button>
-            `;
-
-            // Attach the files array to the download button's click handler
-            document.getElementById('downloadButton').addEventListener('click', () => {
-                certificatePreview.downloadCertificates(data.files);
-            });
-        } else {
-            throw new Error(data.error || 'Failed to generate certificates');
-        }
+        // Use the certificate preview's generate method
+        await certificatePreview.generateCertificates(formData);
     } catch (error) {
         document.getElementById('result').innerHTML = `
             <div class="error">Error: ${error.message}</div>

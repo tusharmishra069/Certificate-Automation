@@ -1,4 +1,58 @@
 /* static/css/style.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 80px;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin-left: 20px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    font-weight: 400;
+    transition: 0.3s;
+}
+
+nav ul li a:hover {
+    color: #888;
+}
+
+body {
+    background-color: #000;
+    color: white;
+}
+
+.hero {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 80px;
+    background: radial-gradient(circle at 50% 50%, rgba(80, 80, 255, 0.5), rgba(0, 0, 0, 0.9));
+}
 
 .container {
     max-width: 900px;
@@ -11,7 +65,7 @@
     border: 1px solid #ddd;
     padding: 20px;
     border-radius: 8px;
-    background: #f8f9fa;
+    background: none;
 }
 
 .preview-controls {
@@ -20,9 +74,10 @@
     gap: 15px;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     padding: 15px;
-    background: #fff;
+    background: none;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 2px solid #ccc; /* Added border color and thickness */
 }
 
 .preview-controls label {
@@ -114,6 +169,7 @@
 
 .text-preview.dragging {
     opacity: 0.8;
+    cursor: grabbing;
     background: rgba(255, 255, 0, 0.6);
 }
 
@@ -147,3 +203,4 @@ button[type="submit"] {
 button[type="submit"]:hover {
     background: #218838;
 }
+
