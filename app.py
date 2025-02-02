@@ -44,8 +44,8 @@ def upload_files():
         font_file.save(font_path)
     
     # Get position and font settings from form data
-    position = json.loads(request.form.get('position', '{"x": 550, "y": 1400}'))
-    font_size = int(request.form.get('fontSize', 75))
+    position = json.loads(request.form.get('position', '{"x": 550, "y": 5}'))
+    font_size = int(request.form.get('fontSize', 50))
     
     # Generate certificates
     output_files = generate_certificates(

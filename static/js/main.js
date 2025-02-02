@@ -232,7 +232,7 @@ class CertificatePreview {
                 `;
     
                 // Add click handler for the download button
-                const downloadButton = document.getElementById('downloadButton');
+                const downloadButton = document.getElementById('download');
                 downloadButton.onclick = () => this.downloadCertificates();
                 
             } else {
@@ -279,7 +279,7 @@ class CertificatePreview {
 const certificatePreview = new CertificatePreview();
 
 // Add event listener for the download button (now handles downloading all certificates)
-document.getElementById('downloadButton').addEventListener('click', () => {
+document.getElementById('download').addEventListener('click', () => {
     // Assuming the server returns a list of generated certificate files
     const files = ['certificate1.png', 'certificate2.png', 'certificate3.png']; // Replace this with actual file list from response
     certificatePreview.downloadCertificates(files);
