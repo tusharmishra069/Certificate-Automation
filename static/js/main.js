@@ -85,7 +85,7 @@ class CertificatePreview {
             return;
         }
 
-        // Make sure the text is visible
+        
         this.dragItem.style.display = 'block';
         this.dragItem.style.zIndex = '1000';
 
